@@ -1,0 +1,52 @@
+\documentclass[11pt,a4paper]{article}
+
+% Fonts and encoding
+\usepackage[utf8]{inputenc} % UTF-8 encoding for a wider range of characters
+\usepackage[T1]{fontenc}    % Font encoding
+\usepackage[english]{babel} % Language settings, change 'english' to your language if needed
+
+% Usual packages
+\usepackage{amsmath}
+% \usepackage{bm}
+\usepackage{graphicx}
+\usepackage[hidelinks=true]{hyperref}
+\usepackage[margin=3cm]{geometry}
+\newcommand{\bm}{\mathbf}
+
+% Font
+\usepackage{cmbright}
+
+% SI units
+\usepackage{siunitx}
+
+% References
+\usepackage{cleveref}
+
+\title{Orbital Mechanics Coursework 2023-24}
+\author{Firstname Lastname \\ CID: 01234567}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{Part 1}
+\subsection*{Problem 1.i}
+Starting from the calculation of the magnitude $b$,
+\begin{equation}
+    b = \sqrt{b_x^2 + b_y^2 + b_z^2} = \num{0.8912}.
+\end{equation}
+
+\section*{Part 2}
+\subsection*{Problem 2.i}
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.5\textwidth]{GEO_radius.png}
+    \caption{Orbital period as a function of the semi-major axis.\label{fig:orbPer}}
+\end{figure}
+The plot in \cref{fig:orbPer} shows the orbital period as a function of the semi-major axis.
+
+\subsection*{Problem 2.ii}
+By using the relations detailed above, the answer is $a = \SI{2.893}{\kilo\metre\per\second}$.
+
+
+\end{document}
