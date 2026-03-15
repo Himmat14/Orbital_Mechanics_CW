@@ -490,6 +490,67 @@ plt.savefig(os.path.join(FIG_DIR, 'partA_altitude_history.png'), dpi=150, bbox_i
 plt.close()
 print("Saved: figs/partA_altitude_history.png")
 
+# ── Perturbation magnitude comparison over one orbital period ──
+print("Computing perturbation accelerations over one orbital period...")
+T_orbit = 2 * np.pi * np.sqrt(A_SC**3 / MU)
+t_one_orbit = np.linspace(0, T_orbit, 600)
+
+sol_one = solve_ivp(
+    eom,
+    (0, T_orbit),
+    state0,
+    method='DOP853',
+    t_eval=t_one_orbit,
+    rtol=1e-10,
+    atol=1e-12,
+    max_step=60.0
+)
+
+a_j2_mag   = []
+a_drag_mag = []
+a_srp_mag  = []
+a_ls_mag   = []
+
+for k in range(sol_one.y.shape[1]):
+    r_v = sol_one.y[:3, k]
+    v_v = sol_one.y[3:, k]
+    t_k = sol_one.t[k]
+    a_j2_mag.append(np.linalg.norm(j2_accel(r_v)))
+    a_drag_mag.append(np.linalg.norm(drag_accel(r_v, v_v)))
+    a_srp_mag.append(np.linalg.norm(srp_accel(r_v, t_k)))
+    a_ls_mag.append(np.linalg.norm(lunisolar_accel(r_v, t_k)))
+
+t_orbit_hrs = t_one_orbit / 3600.0
+
+fig, ax = plt.subplots(figsize=(12, 5))
+ax.semilogy(t_orbit_hrs, a_j2_mag, 'b', linewidth=1.5, label='J2 (Earth oblateness)')
+ax.semilogy(t_orbit_hrs, a_drag_mag, 'r', linewidth=1.5, label='Atmospheric drag')
+ax.semilogy(t_orbit_hrs, a_srp_mag, 'g', linewidth=1.5, label='Solar radiation pressure')
+ax.semilogy(t_orbit_hrs, a_ls_mag, 'm', linewidth=1.5, label='Lunisolar (Sun + Moon)')
+ax.set_xlabel('Time [hours from epoch]')
+ax.set_ylabel(r'Acceleration magnitude [m s$^{-2}$]')
+ax.set_title('Perturbation Acceleration Magnitudes over One Orbital Period (T $\\approx$ 12 h)')
+ax.legend()
+ax.grid(True, alpha=0.3, which='both')
+plt.tight_layout()
+plt.savefig(os.path.join(FIG_DIR, 'partA_perturbation_comparison.png'), dpi=150, bbox_inches='tight')
+plt.close()
+print("Saved: figs/partA_perturbation_comparison.png")
+
+# Print perturbation order of magnitude at perigee and apogee
+idx_per = np.argmin(np.linalg.norm(sol_one.y[:3, :], axis=0))
+idx_apo = np.argmax(np.linalg.norm(sol_one.y[:3, :], axis=0))
+print(f"\nPerturbation magnitudes at perigee (alt={np.linalg.norm(sol_one.y[:3,idx_per])/1e3-RE/1e3:.0f} km):")
+print(f"  J2:         {a_j2_mag[idx_per]:.3e} m/s^2")
+print(f"  Drag:       {a_drag_mag[idx_per]:.3e} m/s^2")
+print(f"  SRP:        {a_srp_mag[idx_per]:.3e} m/s^2")
+print(f"  Lunisolar:  {a_ls_mag[idx_per]:.3e} m/s^2")
+print(f"\nPerturbation magnitudes at apogee (alt={np.linalg.norm(sol_one.y[:3,idx_apo])/1e3-RE/1e3:.0f} km):")
+print(f"  J2:         {a_j2_mag[idx_apo]:.3e} m/s^2")
+print(f"  Drag:       {a_drag_mag[idx_apo]:.3e} m/s^2")
+print(f"  SRP:        {a_srp_mag[idx_apo]:.3e} m/s^2")
+print(f"  Lunisolar:  {a_ls_mag[idx_apo]:.3e} m/s^2")
+
 # ── Summary statistics ──
 print("\n--- Part A Summary Statistics ---")
 print(f"Semi-major axis: initial={a_hist[0]:.3f} km, final={a_hist[-1]:.3f} km, da={a_hist[-1]-a_hist[0]:.3f} km")
@@ -642,6 +703,15 @@ print("Computing Keplerian passes - Kiruna...")
 passes_kir_k, elev_kir_k = find_passes(sol_kep.y, sol_kep.t, KIR_LAT, KIR_LON, "Kiruna")
 
 
+# 48-hour window: epoch to epoch+48h (coursework window: 1–3 Jan 2026 UTC)
+T_WINDOW_48H = 2 * 86400.0  # 172800 s
+
+
+def filter_passes_48h(passes):
+    """Filter passes to the 48-hour coursework window."""
+    return [p for p in passes if p['start_s'] < T_WINDOW_48H]
+
+
 def print_pass_table(passes, gs_name, case):
     print(f"\n{'='*70}")
     print(f"  {gs_name} - {case}")
@@ -653,15 +723,22 @@ def print_pass_table(passes, gs_name, case):
     print(f"  {'-'*64}")
     for i, p in enumerate(passes):
         print(f"  {i+1:<4} {str(p['start_utc']):<22} {str(p['end_utc']):<22} "
-              f"{p['duration_s']/60:>8.2f} m  {p['max_elev_deg']:>8.2f}°")
+              f"{p['duration_s']/60:>8.2f} m  {p['max_elev_deg']:>8.2f} deg")
     total_contact = sum(p['duration_s'] for p in passes) / 60
     print(f"\n  Total contact time: {total_contact:.2f} minutes over {passes[-1]['end_s']/86400:.2f} days")
 
 
-print_pass_table(passes_mal_p, "Malargue (lon=291 deg, lat=-35 deg)", "PERTURBED")
-print_pass_table(passes_kir_p, "Kiruna (lon=20 deg, lat=67 deg)", "PERTURBED")
-print_pass_table(passes_mal_k, "Malargue (lon=291 deg, lat=-35 deg)", "KEPLERIAN (unperturbed)")
-print_pass_table(passes_kir_k, "Kiruna (lon=20 deg, lat=67 deg)", "KEPLERIAN (unperturbed)")
+# Filter to 48-hour coursework window
+passes_mal_p_48 = filter_passes_48h(passes_mal_p)
+passes_kir_p_48 = filter_passes_48h(passes_kir_p)
+passes_mal_k_48 = filter_passes_48h(passes_mal_k)
+passes_kir_k_48 = filter_passes_48h(passes_kir_k)
+
+print("\n--- 48-hour window (1 Jan 2026 12:00 UTC to 3 Jan 2026 12:00 UTC) ---")
+print_pass_table(passes_mal_p_48, "Malargue (lon=291 deg, lat=-35 deg)", "PERTURBED")
+print_pass_table(passes_kir_p_48, "Kiruna (lon=20 deg, lat=67 deg)", "PERTURBED")
+print_pass_table(passes_mal_k_48, "Malargue (lon=291 deg, lat=-35 deg)", "KEPLERIAN (unperturbed)")
+print_pass_table(passes_kir_k_48, "Kiruna (lon=20 deg, lat=67 deg)", "KEPLERIAN (unperturbed)")
 
 
 # ── Elevation angle plots ──
