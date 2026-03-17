@@ -19,8 +19,7 @@
 
 \newcommand{\bm}{\mathbf}
 
-\title{\textbf{AERO70016 Orbital Mechanics Coursework 2025--26}\\[4pt]
-\large AURORA Mission: Special Perturbations and Ground Station Analysis}
+\title{\textbf{Orbital Mechanics coursework report 2025--26}}
 \author{Himmat Kaul \\ CID: 02376386}
 \date{20th March 2026}
 
@@ -33,17 +32,17 @@
 
 \subsection*{(a.i) Numerical Method}
 
-The perturbed equations of motion in the ECI frame are (see \cite[L7, eq.~77]{notes}):
+The perturbed equations of motion in the ECI frame are (see [L7, Eq.~77]):
 \begin{equation}
     \ddot{\bm{r}} + \frac{\mu}{r^3}\bm{r} = \bm{a}_d,
     \label{eq:eom}
 \end{equation}
-where $\bm{a}_d = \bm{a}_{J2} + \bm{a}_{\mathrm{drag}} + \bm{a}_{\mathrm{SRP}} + \bm{a}_{\mathrm{lsol}}$. This is integrated directly (Cowell's method \cite[L7]{notes}) using the \textbf{DOP853} 8th-order Dormand--Prince explicit Runge--Kutta scheme via \texttt{scipy.integrate.solve\_ivp}, with tolerances $\varepsilon_r = 10^{-10}$, $\varepsilon_a = 10^{-12}$, and maximum step size \SI{300}{s} to resolve perigee passage. Output is sampled every \SI{1}{h}; Keplerian elements are recovered from each state using the standard inversion \cite[L5]{notes}.
+where $\bm{a}_d = \bm{a}_{J2} + \bm{a}_{\mathrm{drag}} + \bm{a}_{\mathrm{SRP}} + \bm{a}_{\mathrm{lsol}}$. This is integrated directly (Cowell's method [L7]) using the \textbf{DOP853} 8th-order Dormand--Prince explicit Runge--Kutta scheme via \texttt{scipy.integrate.solve\_ivp}, with tolerances $\varepsilon_r = 10^{-10}$, $\varepsilon_a = 10^{-12}$, and maximum step size \SI{300}{s} to resolve perigee passage. Output is sampled every \SI{1}{h}; Keplerian elements are recovered from each state using the standard inversion [L5].
 
 \subsection*{(a.ii) Perturbation Models}
 
 \paragraph{J2 -- Earth oblateness.}
-From the spherical harmonics expansion of the geopotential \cite[L8, eq.~106--107]{notes}, truncated at degree 2:
+From the spherical harmonics expansion of the geopotential [L8, Eqs.~106--107], truncated at degree 2:
 \begin{equation}
     \bm{a}_{J2} = \frac{3}{2}\frac{\mu J_2 R_E^2}{r^5}
     \begin{pmatrix}
@@ -66,14 +65,14 @@ The density $\rho$ is from a layered exponential atmosphere. At the AURORA perig
 
 \paragraph{Solar radiation pressure (SRP).}
 \begin{equation}
-    \bm{a}_{\mathrm{SRP}} = \nu C_R \frac{A}{m} P_\odot \left(\frac{\mathrm{AU}}{r_\odot}\right)^{\!2} \hat{\bm{r}}_{\odot},
+    \bm{a}_{\mathrm{SRP}} = \nu C_R \frac{A}{m} P_\odot \left(\frac{\mathrm{AU}}{r_\odot}\right)^{\!2} \hat{\bm{r}}_{\odot\to\mathrm{sc}},
     \qquad P_\odot = \SI{4.56e-6}{N\,m^{-2}},\; C_R=1.5,
     \label{eq:srp}
 \end{equation}
-where $\nu\in\{0,1\}$ is the cylindrical eclipse indicator. SRP is approximately constant over the orbit at $|\bm{a}_{\mathrm{SRP}}|\approx1.95\times10^{-7}$\,m\,s$^{-2}$.
+where $\nu\in\{0,1\}$ is the cylindrical eclipse indicator and $\hat{\bm{r}}_{\odot\to\mathrm{sc}}$ points from the Sun to the spacecraft (away from Sun). SRP is approximately constant over the orbit at $|\bm{a}_{\mathrm{SRP}}|\approx1.95\times10^{-7}$\,m\,s$^{-2}$.
 
 \paragraph{Lunisolar third-body.}
-The indirect-term formulation for Sun ($\odot$) and Moon ($\mathcal{L}$) is \cite[L8]{notes}:
+The indirect-term formulation for Sun ($\odot$) and Moon ($\mathcal{L}$) is [L8]:
 \begin{equation}
     \bm{a}_{\mathrm{lsol}} = \mu_\odot\!\left(\frac{\bm{r}_\odot-\bm{r}}{|\bm{r}_\odot-\bm{r}|^3} - \frac{\bm{r}_\odot}{r_\odot^3}\right)
     + \mu_\mathcal{L}\!\left(\frac{\bm{r}_\mathcal{L}-\bm{r}}{|\bm{r}_\mathcal{L}-\bm{r}|^3} - \frac{\bm{r}_\mathcal{L}}{r_\mathcal{L}^3}\right).
@@ -101,23 +100,23 @@ At apogee ($r_a\approx\SI{45220}{km}$), $|\bm{a}_{\mathrm{lsol}}|\approx8.1\time
     \caption{Perigee and apogee altitude history over one year.\label{fig:alt_hist}}
 \end{figure}
 
-The Gauss variational equations \cite[L7, eq.~96--102]{notes} identify which components of $\bm{a}_d$ drive each element. Averaging over one orbit \cite[L8, eq.~109]{notes} isolates secular trends:
+The Gauss variational equations [L7, Eqs.~96--102] identify which components of $\bm{a}_d$ drive each element. Averaging over one orbit [L8, Eq.~109] isolates secular trends:
 
 \paragraph{Semi-major axis $a$.}
-From the Gauss equation \cite[L7, eq.~102]{notes},
+From the Gauss equation [L7, Eq.~102],
 \begin{equation}
     \frac{\mathrm{d}a}{\mathrm{d}t} = \frac{2a^2}{h}\!\left(e\sin\theta\,a_{d,r} + \frac{h^2}{\mu r}\,a_{d,s}\right).
 \end{equation}
 The J2 average is zero (conservative); drag reduces $a$ but at perigee altitude \SI{1602}{km} the effect is negligible ($|\bm{a}_{\mathrm{drag}}|\approx5\times10^{-10}$\,m\,s$^{-2}$). Simulation gives $\Delta a = +\SI{0.77}{km}$ over one year, with short-period oscillations of $\sim\SI{10}{km}$ amplitude driven by J2.
 
 \paragraph{Eccentricity $e$.}
-The averaged J2 rate gives $\dot{\bar{e}}=0$ \cite[L8]{notes}. The observed $\Delta e\approx+0.008$ arises from lunisolar long-period coupling (Kozai--Lidov type), with $\sim$90-day period oscillations visible in \cref{fig:orb_elems}.
+The averaged J2 rate gives $\dot{\bar{e}}=0$ [L8]. The observed $\Delta e\approx+0.008$ arises from lunisolar long-period coupling (Kozai--Lidov type), with $\sim$90-day period oscillations visible in \cref{fig:orb_elems}.
 
 \paragraph{Inclination $i$.}
-Averaged J2 gives $\dot{\bar{i}}=0$ \cite[L8]{notes}. The residual $\Delta i\approx -0.18°$ over one year reflects lunar/solar out-of-plane perturbations at the same 90-day timescale as $e$.
+Averaged J2 gives $\dot{\bar{i}}=0$ [L8]. The residual $\Delta i\approx -0.18°$ over one year reflects lunar/solar out-of-plane perturbations at the same 90-day timescale as $e$.
 
 \paragraph{RAAN $\Omega$.}
-Averaging the J2 term in the Gauss equation \cite[L7, eq.~99]{notes} yields the secular precession \cite[L8]{notes}:
+Averaging the J2 term in the Gauss equation [L7, Eq.~99] yields the secular precession [L8]:
 \begin{equation}
     \dot{\bar{\Omega}} = -\frac{3}{2}n J_2\!\left(\frac{R_E}{p}\right)^{\!2}\cos i,
     \qquad p = a(1-e^2),\quad n=\sqrt{\mu/a^3}.
@@ -126,12 +125,12 @@ Averaging the J2 term in the Gauss equation \cite[L7, eq.~99]{notes} yields the 
 With $i=116.6°$, $\cos i = -0.449 < 0$, so $\dot{\bar{\Omega}}>0$ (retrograde orbit drifts eastward). The analytical estimate gives $\dot{\bar{\Omega}}\approx+0.126°$\,day$^{-1}=+45.9°$\,yr$^{-1}$, in excellent agreement with the simulated $\Delta\Omega=+45.9°$.
 
 \paragraph{Argument of perigee $\omega$.}
-From the averaged J2 equations \cite[L8]{notes}:
+From the averaged J2 equations [L8]:
 \begin{equation}
     \dot{\bar{\omega}} = \frac{3}{4}n J_2\!\left(\frac{R_E}{p}\right)^{\!2}\!\left(5\cos^2 i - 1\right).
     \label{eq:omega}
 \end{equation}
-The AURORA inclination $i=116.6°=180°-63.4°$ satisfies the \emph{retrograde critical inclination} condition \cite[L8]{notes}:
+The AURORA inclination $i=116.6°=180°-63.4°$ satisfies the \emph{retrograde critical inclination} condition [L8]:
 \begin{equation}
     5\cos^2 i_c - 1 = 0 \implies i_c = 180° - 63.435°,
 \end{equation}
@@ -141,7 +140,7 @@ so $\dot{\bar{\omega}}=0$ secularly. The orbit is thus a \textbf{frozen orbit}, 
 \section*{Part (b): Ground Station Pass Analysis}
 %──────────────────────────────────────────────────────────────
 
-For ground-station visibility the ECI state is rotated to ECEF via \cite[L5, eq.~48]{notes}:
+For ground-station visibility the ECI state is rotated to ECEF via [L5, Eq.~48]:
 \begin{equation}
     \bm{r}_{\mathrm{ECEF}} = \mathbf{R}_3[\theta_{\mathrm{GMST}}]\,\bm{r}_{\mathrm{ECI}},
     \qquad \theta_{\mathrm{GMST}} = \theta_{\mathrm{GMST},0} + \omega_\oplus t,
@@ -150,14 +149,14 @@ and transformed to the ENZ topocentric frame. The elevation angle $\varepsilon$ 
 \begin{equation}
     \varepsilon = \arcsin\!\left(\frac{\bm{\rho}\cdot\hat{\bm{Z}}}{|\bm{\rho}|}\right), \qquad \bm{\rho} = \bm{r}_{\mathrm{ECEF}} - \bm{r}_{\mathrm{GS}},
 \end{equation}
-where $\hat{\bm{Z}}$ is the local zenith unit vector. A pass is defined by $\varepsilon\geq5°$. The trajectory is integrated for 72 hours at \SI{30}{s} steps (DOP853, same tolerances as Part a), and results are filtered to the 48-hour window 1--3 Jan 2026 12:00 UTC.
+where $\hat{\bm{Z}}$ is the local zenith unit vector. The spacecraft is visible when $\varepsilon>0°$ (above the local horizontal plane). The trajectory is integrated for 72 hours at \SI{30}{s} steps (DOP853, same tolerances as Part a), and results are filtered to the 48-hour window 1--3 Jan 2026 12:00 UTC.
 
 \subsection*{(b.i) Pass Tables}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{figs/partB_elevation_angles.png}
-    \caption{Elevation angles from Malarg\"{u}e (top) and Kiruna (bottom) over 72 hours. Blue: perturbed; red dashed: Keplerian. Shaded: $\varepsilon\geq5°$.\label{fig:elev}}
+    \caption{Elevation angles from Malarg\"{u}e (top) and Kiruna (bottom) over 72 hours. Blue: perturbed; red dashed: Keplerian. Shaded: $\varepsilon>0°$.\label{fig:elev}}
 \end{figure}
 
 \begin{table}[H]
@@ -201,12 +200,12 @@ Pass & AOS (UTC) & LOS (UTC) & Dur.\ (min) & Max $\varepsilon$ ($°$) \\
 
 The contact-time ratio is $2028/39 \approx 52$. This is explained geometrically as follows.
 
-The AURORA orbit has $a=\SI{26600}{km}$, $e=0.7$, giving $r_p = a(1-e)=\SI{7980}{km}$ and $r_a = a(1+e)=\SI{45220}{km}$ \cite[L2]{notes}. By Kepler's second law ($h=r^2\dot\theta=\mathrm{const}$\cite[L1]{notes}), the spacecraft spends most of its 12-hour period near apogee. The Earth horizon angular radius at apogee is:
+The AURORA orbit has $a=\SI{26600}{km}$, $e=0.7$, giving $r_p = a(1-e)=\SI{7980}{km}$ and $r_a = a(1+e)=\SI{45220}{km}$ [L2]. By Kepler's second law ($h=r^2\dot\theta=\mathrm{const}$ [L1]), the spacecraft spends most of its 12-hour period near apogee. The Earth horizon angular radius at apogee is:
 \begin{equation}
     \rho_h = \arccos\!\left(\frac{R_E}{r_a}\right) = \arccos\!\left(\frac{6378}{45220}\right) \approx 81.8°.
 \end{equation}
 
-The orbital inclination $i=116.6°$ is retrograde, so the maximum sub-satellite latitude is $|180°-116.6°|=63.4°$ \cite[L5]{notes}. Malarg\"{u}e ($\phi=-35°$) lies well inside this envelope and is frequently overflown; when apogee passes over South America a single pass lasts 3--7 hours. The orbit begins at $\nu=180°$ (apogee above South America) so Pass 1 starts at epoch.
+The orbital inclination $i=116.6°$ is retrograde, so the maximum sub-satellite latitude is $|180°-116.6°|=63.4°$ [L5]. Malarg\"{u}e ($\phi=-35°$) lies well inside this envelope and is frequently overflown; when apogee passes over South America a single pass lasts 3--7 hours. The orbit begins at $\nu=180°$ (apogee above South America) so Pass 1 starts at epoch.
 
 Kiruna ($\phi=67°$) lies \emph{outside} the ground track envelope ($63.4°\mathrm{N}$). It is only visible when apogee altitude places it within the $\rho_h=81.8°$ horizon cone -- occurring approximately once per sidereal day when the ascending node aligns with northern Europe. Despite this, the nearly overhead geometry at apogee yields $\varepsilon_{\max}\approx72°$, counter-intuitively exceeding many Malarg\"{u}e passes ($\sim57°$), because the spacecraft altitude is so large that the apparent angular distance to Kiruna from the sub-satellite point is only $\sim4°$.
 
@@ -234,29 +233,10 @@ Kiruna       & Perturbed & 2 &   39.0 &  19.5 \\
 \end{tabular}
 \end{table}
 
-Over 48 hours the two trajectories are indistinguishable: pass count is identical and total contact time differs by $<\SI{1}{min}$. The dominant perturbation driving trajectory divergence is the J2 RAAN precession (eq.~\ref{eq:raan}). Over 2 days:
+Over 48 hours the two trajectories are indistinguishable: pass count is identical and total contact time differs by $<\SI{1}{min}$. The dominant perturbation driving trajectory divergence is the J2 RAAN precession (Eq.~\ref{eq:raan}). Over 2 days:
 \begin{equation}
     \Delta\Omega_{48\mathrm{h}} = \dot{\bar{\Omega}}\times 2 = 0.126°\,\mathrm{day}^{-1}\times 2 = 0.25°,
 \end{equation}
-a shift too small to affect pass schedules. Over one year, however, the accumulated $\Delta\Omega=+45.9°$ shifts the ground track by nearly $\tfrac{1}{8}$ orbit, substantially altering coverage geometry for both stations. Keplerian prediction is therefore adequate for short-arc ($<$1 week) scheduling, but high-fidelity propagation (eq.~\ref{eq:eom}) is required for operational mission planning.
-
-%──────────────────────────────────────────────────────────────
-\begin{thebibliography}{9}
-\bibitem{notes}
-R.~Hewson and D.~Amato,
-\textit{AERO70016/97079 Orbital Mechanics Lecture Notes},
-Imperial College London, 2025/26.
-Cited by lecture number (L1--L12) and equation number where applicable.
-
-\bibitem{vallado}
-D.~A.~Vallado and W.~D.~McClain,
-\textit{Fundamentals of Astrodynamics and Applications}, 4th ed.
-Microcosm Press, 2013.
-
-\bibitem{meeus}
-J.~Meeus,
-\textit{Astronomical Algorithms}, 2nd ed.
-Willmann-Bell, 1998.
-\end{thebibliography}
+a shift too small to affect pass schedules. Over one year, however, the accumulated $\Delta\Omega=+45.9°$ shifts the ground track by nearly $\tfrac{1}{8}$ orbit, substantially altering coverage geometry for both stations. Keplerian prediction is therefore adequate for short-arc ($<$1 week) scheduling, but high-fidelity propagation (Eq.~\ref{eq:eom}) is required for operational mission planning.
 
 \end{document}

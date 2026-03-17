@@ -54,7 +54,7 @@ KIR_LAT = np.radians(67.0)
 KIR_LON = np.radians(20.0)
 KIR_ALT = 0.0
 
-ELEV_MASK = np.radians(5.0)  # minimum elevation angle [rad]
+ELEV_MASK = np.radians(0.0)  # elevation mask: visible when above horizon (0 deg per coursework brief)
 
 # Output directory
 FIG_DIR = "figs"
@@ -297,24 +297,23 @@ def moon_position(t_seconds):
 
 
 def srp_accel(r_vec, t_seconds):
-    """Solar radiation pressure acceleration [m/s^2]."""
+    """Solar radiation pressure acceleration [m/s^2]. SRP pushes away from Sun."""
     r_sun = sun_position(t_seconds)
-    r_sc_sun = r_sun - r_vec
-    dist_sun = np.linalg.norm(r_sc_sun)
 
-    # Check eclipse (cylindrical shadow model)
-    r_sun_sc = -r_sc_sun  # vector from spacecraft to sun
-    r = np.linalg.norm(r_vec)
-    proj = np.dot(r_vec, r_sun - r_vec) / np.linalg.norm(r_sun - r_vec)
-    perp = np.linalg.norm(r_vec - proj * (r_sun - r_vec)/np.linalg.norm(r_sun - r_vec))
+    # Vector from Sun to spacecraft (SRP force direction: away from Sun)
+    r_sun_to_sc = r_vec - r_sun
+    dist_sun = np.linalg.norm(r_sun_to_sc)
+    r_sun_hat = r_sun_to_sc / dist_sun  # unit vector from Sun toward SC
 
-    # Simplified eclipse: if spacecraft is in Earth shadow cone
-    in_shadow = (np.dot(r_vec, r_sun) < 0) and (perp < RE)
+    # Cylindrical shadow: project SC onto the Earth->Sun axis
+    r_sun_dir = r_sun / np.linalg.norm(r_sun)  # unit vector from Earth toward Sun
+    dot = np.dot(r_vec, r_sun_dir)
+    perp = np.linalg.norm(r_vec - dot * r_sun_dir)
+    in_shadow = (dot < 0) and (perp < RE)
     if in_shadow:
         return np.zeros(3)
 
-    # SRP acceleration (pointing away from sun)
-    r_sun_hat = r_sc_sun / dist_sun
+    # SRP acceleration: away from Sun
     a_srp = CR * (A_m / M_SC) * P_SRP * (AU / dist_sun)**2 * r_sun_hat
     return a_srp
 
@@ -833,8 +832,8 @@ fig.suptitle('Ground Station Pass Duration Comparison\n(Perturbed vs Keplerian)'
 
 for ax, passes_p, passes_k, name in zip(
     axes,
-    [passes_mal_p, passes_kir_p],
-    [passes_mal_k, passes_kir_k],
+    [passes_mal_p_48, passes_kir_p_48],
+    [passes_mal_k_48, passes_kir_k_48],
     ['Malargüe', 'Kiruna']
 ):
     n_p = len(passes_p)
